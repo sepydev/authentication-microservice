@@ -7,6 +7,20 @@ UserModel = get_user_model()
 
 
 class UserRepository(IUserRepository):
+    def get_user_by_id(self, id: int) -> Optional[User]:
+        try:
+            django_user = UserModel.objects.get(ok=id)
+        except UserModel.DoesNotExist:
+            return None
+        user = User(
+            id=django_user.id,
+            email=django_user.email,
+            first_name=django_user.first_name,
+            last_name=django_user.last_name,
+            password_hash=django_user.password,
+        )
+        return user
+
     def get_user_by_email(self, email: str) -> Optional[User]:
         try:
             django_user = UserModel.objects.get(email=email)
