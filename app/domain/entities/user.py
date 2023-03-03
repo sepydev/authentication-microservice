@@ -9,4 +9,5 @@ class User:
     password_hash: str
     is_active: bool = True
     is_superuser: bool = False
-    full_name: Optional[str] = None
+    first_name: Optional[str] = None,
+    last_name: Optional[str] = None

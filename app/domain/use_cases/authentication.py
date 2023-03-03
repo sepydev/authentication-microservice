@@ -23,8 +23,8 @@ class AuthenticationUseCase:
         access_token = self.token_service.generate_access_token(user.id)
         return access_token
 
-    def create_user(self, email: str, password: str, full_name: Optional[str]) -> User:
+    def create_user(self, email: str, password: str, first_name: Optional[str], last_name: Optional[str]) -> User:
         password_hash = self.password_service.hash_password(password)
-        user = User(email=email, password_hash=password_hash, full_name=full_name)
+        user = User(email=email, password_hash=password_hash, first_name=first_name, last_name=last_name)
         self.user_repository.create_user(user)
         return user

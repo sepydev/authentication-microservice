@@ -1,12 +1,14 @@
+from abc import ABC, abstractmethod
 from typing import Optional
+
 from app.domain.entities.user import User
 
 
-class UserRepository:
+class UserRepository(ABC):
+    @abstractmethod
     def get_user_by_email(self, email: str) -> Optional[User]:
-        # Implementation details for retrieving a user from the database by email
         pass
 
+    @abstractmethod
     def create_user(self, user: User) -> User:
-        # Implementation details for creating a new user in the database
         pass
