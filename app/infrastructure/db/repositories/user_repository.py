@@ -1,12 +1,12 @@
 from typing import Optional
 from django.contrib.auth import get_user_model
 from app.domain.entities.user import User
-from app.domain.interface_adapters.repositories.user_repository import UserRepository
+from app.domain.interfaces.repositories.user_repository import IUserRepository
 
 UserModel = get_user_model()
 
 
-class UserRepository(UserRepository):
+class UserRepository(IUserRepository):
     def get_user_by_email(self, email: str) -> Optional[User]:
         try:
             django_user = UserModel.objects.get(email=email)
