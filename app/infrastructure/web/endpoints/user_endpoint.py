@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, status
-from passlib.context import CryptContext
 
 from ..schemas.token_schema import Token, TokenData
 from ..schemas.user_schema import User, UserCreate, UserLogin
@@ -13,8 +12,6 @@ user_repository = UserRepository()
 password_service = PasswordService()
 token_service = TokenService()
 auth_use_case = AuthenticationUseCase(user_repository)
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @app.post("/users", response_model=User)
