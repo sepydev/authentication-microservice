@@ -23,7 +23,10 @@ class AuthenticationUseCase:
             return None
 
         access_token_expiration = 30  # in minutes
-        access_token = self.token_service.generate_access_token({"sub": user.id}, expires_delta=access_token_expiration)
+        access_token = self.token_service.generate_access_token(
+            data={"email": user.email, "user_id": user.id}
+            , expires_delta=access_token_expiration
+        )
         return access_token
 
     def create_user(self, email: str, password: str, first_name: Optional[str], last_name: Optional[str]) -> User:
