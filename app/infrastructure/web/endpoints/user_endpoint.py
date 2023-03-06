@@ -2,13 +2,16 @@ from fastapi import FastAPI, HTTPException, status
 
 from ..schemas.token_schema import Token, TokenData
 from ..schemas.user_schema import User, UserCreate, UserLogin
-from ...db.repositories.user_repository import UserRepository
+# from ...db.repositories.user_repository import UserRepository
+from ....domain.interfaces.repositories.user_repository import IUserRepository
 from ....domain.use_cases.authentication import AuthenticationUseCase
 from ....services.password_service import PasswordService
 from ....services.token_service import TokenService
+from config import container
 
 app = FastAPI()
-user_repository = UserRepository()
+user_repository = container(IUserRepository)
+# user_repository = UserRepository()
 password_service = PasswordService()
 token_service = TokenService()
 auth_use_case = AuthenticationUseCase(user_repository)
