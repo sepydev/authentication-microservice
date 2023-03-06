@@ -1,6 +1,7 @@
-from os import environ
+import environ
 
 env = environ.Env()
+environ.Env.read_env('.env')
 
 ACCESS_TOKEN_EXPIRE_MINUTES = env('ACCESS_TOKEN_EXPIRE_MINUTES')
 SECRET_KEY = env('SECRET_KEY')
