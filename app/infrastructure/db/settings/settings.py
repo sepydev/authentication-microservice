@@ -9,12 +9,14 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+import os
 import sys
+
 sys.path.append(".")
 
 from pathlib import Path
 
-from config import SECRET_KEY, DEBUG   # noqa
+from config import SECRET_KEY, DEBUG  # noqa
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +29,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ALLOWED_HOSTS = []
 
+cwd = os.path.split(os.getcwd())
+if cwd and len(cwd) > 1 and cwd[1] == 'authetication-microservice':
+    BASE_DJANGO_APP_PATH = 'app.infrastructure.db.'
+else:
+    BASE_DJANGO_APP_PATH = ''
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -36,7 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'authentication_microservice.apps.AuthenticationMicroserviceConfig',
+    # Local api call from two different directories
+    BASE_DJANGO_APP_PATH + 'authentication_microservice.apps.AuthenticationMicroserviceConfig',
 ]
 
 MIDDLEWARE = [
