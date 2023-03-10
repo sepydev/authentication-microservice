@@ -12,7 +12,7 @@ class UserCreate(BaseModel):
 
 
 class UserLogin(BaseModel):
-    email: str
+    username: str
     password: str
 
 
@@ -22,5 +22,3 @@ class User(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     is_active: bool
-    is_staff: bool
-    created_at: datetime
