@@ -1,5 +1,9 @@
 from typing import Optional
+
+import django.db
 from django.contrib.auth import get_user_model
+
+from app.domain.entities.exception import IntegrityError
 from app.domain.entities.user import User
 from app.domain.interfaces.repositories.user_repository import IUserRepository
 
@@ -9,7 +13,7 @@ UserModel = get_user_model()
 class UserRepository(IUserRepository):
     def get_user_by_id(self, id: int) -> Optional[User]:
         try:
-            django_user = UserModel.objects.get(ok=id)
+            django_user = UserModel.objects.get(pk=id)
         except UserModel.DoesNotExist:
             return None
         user = User(
@@ -36,12 +40,14 @@ class UserRepository(IUserRepository):
         return user
 
     def create_user(self, user: User) -> User:
-        django_user = UserModel.objects.create_user(
-            username=user.email,
-            email=user.email,
-            password=user.password_hash,
-            first_name=user.first_name,
-            last_name=user.last_name,
-        )
-        user.id = django_user.id
-        return user
+        try:
+            django_user = UserModel.objects.create_user(
+                email=user.email,
+                password_hash=user.password_hash,
+                first_name=user.first_name,
+                last_name=user.last_name,
+            )
+            user.id = django_user.id
+            return user
+        except django.db.IntegrityError as error:
+            raise IntegrityError(str(error))
