@@ -1,49 +1,59 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from lagom.integrations.fast_api import FastApiIntegration
+from pydantic import ValidationError
 
-from ..schemas.token_schema import Token, TokenData
-from ..schemas.user_schema import User, UserCreate, UserLogin
-# from ...db.repositories.user_repository import UserRepository
-from ....domain.interfaces.repositories.user_repository import IUserRepository
+from config_di import container
+from ..controller import authenticate
+from ..schemas.token_schema import Token
+from ..schemas.user_schema import User, UserCreate
+from ....domain.entities.exception import IntegrityError, UserOrPasswordIsWrong
 from ....domain.use_cases.authentication import AuthenticationUseCase
-from ....services.password_service import PasswordService
-from ....services.token_service import TokenService
-from config import container
+from ....domain.use_cases.user import UserUseCase
 
-app = FastAPI()
-user_repository = container(IUserRepository)
-# user_repository = UserRepository()
-password_service = PasswordService()
-token_service = TokenService()
-auth_use_case = AuthenticationUseCase(user_repository)
+api = FastAPI()
+deps = FastApiIntegration(container)
 
 
-@app.post("/users", response_model=User)
-async def create_user(user_create: UserCreate):
-    user = auth_use_case.create_user(user_create.email, user_create.password, user_create.first_name,
-                                     user_create.last_name)
-    return user
 
 
-@app.post("/login", response_model=Token)
-async def login(user_login: UserLogin):
-    user = auth_use_case.authenticate_user(user_login.email, user_login.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST
-            , detail="Incorrect email or password"
+@api.post("/users", response_model=User)
+async def create_user(user_create: UserCreate, user_use_case=deps.depends(UserUseCase)):
+    try:
+        user = user_use_case.create_user(
+            user_create.email,
+            user_create.password,
+            user_create.first_name,
+            user_create.last_name
         )
-    access_token = token_service.generate_access_token(
-        data={"email": user.email, "user_id": user.id},
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
-
-
-@app.get("/users/me", response_model=User)
-async def read_users_me(token_data: TokenData):
-    user = user_repository.get_user_by_id(token_data.user_id)
-    if not user:
+        return user
+    except IntegrityError:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email address already exists."
         )
+    except ValidationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error)
+        )
+
+
+@api.post("/login", response_model=Token)
+async def login(
+        user_login: OAuth2PasswordRequestForm = Depends(),
+        auth_use_case=deps.depends(AuthenticationUseCase)
+):
+    try:
+        token = auth_use_case.get_token(user_login.username, user_login.password)
+        return token
+    except UserOrPasswordIsWrong as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error)
+        )
+
+
+@api.get("/users/me", response_model=User)
+async def get_user_detail(user=Depends(authenticate)):
     return user
